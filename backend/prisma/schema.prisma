@@ -1,0 +1,191 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+
+  role Role @default(CLIENT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  CLIENT
+}
+
+model Service {
+  id          String          @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  category    ServiceCategory
+  duration    Int
+
+  media    Media[]
+  bookings Booking[]
+
+  reviews Review[]
+
+  availabilities ServiceAvailability[]
+  slots          AvailabilitySlot[]
+
+  createdAt DateTime @default(now())
+}
+
+enum ServiceCategory {
+  TATTOO
+  MASSAGE
+}
+
+model Media {
+  id        String  @id @default(uuid())
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  url  String
+  type MediaType
+
+  isCover Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+model ServiceAvailability {
+  id String @id @default(uuid())
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  date DateTime @default(now())
+  // 0 = Sunday, 1 = Monday ... 6 = Saturday
+
+  startTime String // "09:00"
+  endTime   String // "18:00"
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+}
+
+model AvailabilitySlot {
+  id String @id @default(uuid())
+
+  serviceId String
+
+  service Service @relation(fields: [serviceId], references: [id])
+
+  date      DateTime
+  startTime String
+  endTime   String
+  isBooked  Boolean  @default(false)
+
+  booking Booking?
+
+  createdAt DateTime @default(now())
+
+  @@index([serviceId])
+  @@index([date])
+}
+
+model Booking {
+  id String @id @default(uuid())
+
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  slotId String           @unique
+  slot   AvailabilitySlot @relation(fields: [slotId], references: [id])
+
+  customerName String
+  email        String
+  phone        String
+  notes        String?
+
+  totalAmount     Float
+  depositAmount   Float
+  remainingAmount Float
+
+  status BookingStatus @default(PENDING_DEPOSIT)
+
+  payments Payment[]
+
+  
+
+  createdAt DateTime @default(now())
+
+  @@index([serviceId])
+}
+model Review {
+  id String @id @default(uuid())
+
+  serviceId String
+  service Service  @relation(fields: [serviceId], references: [id])
+  name String @default("Anonymous")
+  rating Int
+
+  comment String
+
+  createdAt DateTime @default(now())
+}
+
+enum BookingStatus {
+  PENDING_DEPOSIT
+  DEPOSIT_PAID
+  CONFIRMED
+
+  FULLY_PAID
+  CANCELLED
+  COMPLETED
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  amount Float
+
+  paymentType PaymentType
+
+  provider PaymentProvider
+
+  transactionId String?
+  reference     String?
+
+  status PaymentStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+}
+
+enum PaymentProvider {
+  STRIPE
+  CRYPTO
+}
+
+enum PaymentType {
+  DEPOSIT
+  BALANCE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}

@@ -1,7 +1,7 @@
 import stripe from "../../config/stripe.js";
 import prisma from "../../config/db.js";
 
-export const createDepositPayment = async (bookingId) => {
+export const createDepositPayment = async (bookingId, provider) => {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
   });
@@ -15,7 +15,7 @@ export const createDepositPayment = async (bookingId) => {
       bookingId,
       amount: booking.depositAmount,
       paymentType: "DEPOSIT",
-      provider: "STRIPE",
+      provider,
       status: "PENDING",
     },
   });
@@ -156,4 +156,65 @@ export const getPaymentStats = async () => {
       (p) => p.paymentType === "BALANCE"
     ).length,
   };
+};
+export const createCryptoCheckout = async (paymentId) => {
+  const payment = await prisma.payment.findUnique({
+    where: {
+      id: paymentId,
+    },
+  });
+
+  if (!payment) {
+    throw new Error("Payment not found");
+    
+    }
+
+    const wallet = await prisma.wallet.findFirst({
+      where: {
+        isActive: true,
+      },
+    });
+
+    if (!wallet) {
+      throw new Error("No active wallet found");
+    }
+
+    return {
+      paymentId: payment.id,
+      bookingId: payment.bookingId,
+
+      amount: payment.amount,
+
+      currency: wallet.currency,
+      network: wallet.network,
+      walletAddress: wallet.walletAddress,
+
+      status: payment.status,
+    };
+  };
+  export const saveCryptoProof = async (
+  paymentId,
+  proofImage,
+  txHash
+) => {
+  const payment = await prisma.payment.findUnique({
+    where: {
+      id: paymentId,
+    },
+  });
+
+  if (!payment) {
+    throw new Error("Payment not found");
+  }
+
+  return await prisma.payment.update({
+    where: {
+      id: paymentId,
+    },
+    data: {
+      proofImage,
+      txHash,
+      status: "PENDING",
+    },
+  });
 };

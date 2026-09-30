@@ -7,9 +7,14 @@ import {
   createCheckoutSession,
   handleSuccessfulPayment,
   getPaymentStats,
+  createCryptoCheckout,
+  saveCryptoProof,
 } from "./payment.service.js";
 
+
 import { sendPaymentSuccessEmail } from "../email/email.service.js";
+
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -18,7 +23,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 //
 export const createDeposit = async (req, res) => {
   try {
-    const payment = await createDepositPayment(req.body.bookingId);
+    const payment = await createDepositPayment(req.body.bookingId, req.body.provider);
 
     res.status(201).json({
       message: "Deposit payment created",
@@ -148,6 +153,36 @@ export const stats = async (req, res) => {
     const data = await getPaymentStats();
 
     res.json(data);
+  } catch (err) {
+    res.status(400).json({
+      message: err.message,
+    });
+  }
+};
+
+export const cryptoCheckout = async (req, res) => {
+  try {
+    const data = await createCryptoCheckout(req.params.paymentId);
+
+    res.json(data);
+  } catch (err) {
+    res.status(400).json({
+      message: err.message,
+    });
+  }
+};
+export const uploadCryptoProof = async (req, res) => {
+  try {
+    const payment = await saveCryptoProof(
+      req.params.paymentId,
+      req.file.path,
+      req.body.txHash
+    );
+
+    res.json({
+      message: "Payment proof uploaded successfully",
+      payment,
+    });
   } catch (err) {
     res.status(400).json({
       message: err.message,

@@ -13,6 +13,7 @@ import { stripeWebhook } from "./modules/payments/payment.controller.js";
 import calendarRoutes from "./modules/calendar/calendar.routes.js";
 import path from "path";
 import reviewRoutes from "./modules/reviews/review.routes.js";
+import walletRoutes from "./modules/wallets/wallet.routes.js";
 dotenv.config();
 
 const app = express(); // ✅ FIX 1: use express(), not Router
@@ -47,6 +48,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/calendar", calendarRoutes);
+app.use("/api/wallets", walletRoutes);
 app.use(
   "/uploads",
   express.static("uploads")

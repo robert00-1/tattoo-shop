@@ -13,6 +13,8 @@ import AdminBookings from "./pages/admin/AdminBookings";
 import PaymentManagement from "./pages/admin/PaymentManagement";
 import AdminRoute from "./components/AdminRoute";
 import Login from "./pages/Login";
+import CryptoPayment from "./pages/CryptoPayment";
+import PaymentPending from "./pages/PaymentPending";
 function App() {
   return (
     <BrowserRouter>
@@ -81,6 +83,15 @@ function App() {
       <ServicesManagement />
     </AdminRoute>
   }
+/>
+
+<Route
+  path="/crypto-payment"
+  element={<CryptoPayment />}
+/>
+<Route
+    path="/payment-pending"
+    element={<PaymentPending />}
 />
       </Routes>
     </BrowserRouter>

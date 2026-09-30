@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import api from "../services/api";
 
@@ -7,6 +7,7 @@ import Footer from "../components/Footer";
 
 function Booking() {
   const { state } = useLocation();
+  const navigate = useNavigate();
 
   const service = state?.service;
   const slot = state?.slot;
@@ -36,6 +37,7 @@ const [formData, setFormData] = useState({
   email: "",
   phone: "",
   notes: "",
+  paymentMethod: "STRIPE",
 });
 
 const handleChange = (e) => {
@@ -65,12 +67,13 @@ const handleSubmit = async (e) => {
 
     const paymentResponse = await api.post("/payments/deposit", {
       bookingId: booking.id,
+      provider: formData.paymentMethod,
     });
 
     const payment = paymentResponse.data.payment;
 
     // STEP 3: CREATE STRIPE CHECKOUT SESSION
-
+    if (formData.paymentMethod === "STRIPE") {
     const checkoutResponse = await api.post(
       `/payments/checkout/${payment.id}`
     );
@@ -79,6 +82,14 @@ const handleSubmit = async (e) => {
 
     window.location.href =
       checkoutResponse.data.checkoutUrl;
+  } else {
+    const cryptoResponse = await api.get(
+      `/payments/crypto-checkout/${payment.id}`
+    );
+    navigate("/crypto-payment", {
+    state: cryptoResponse.data,
+    });
+  }
 
   } catch (error) {
     console.error(error);
@@ -194,6 +205,22 @@ const handleSubmit = async (e) => {
     className="w-full border rounded-lg p-3"
     rows="4"
   />
+</div>
+
+<div>
+  <label className="block mb-2 font-medium">
+    Payment Method
+  </label>
+
+  <select
+    name="paymentMethod"
+    value={formData.paymentMethod}
+    onChange={handleChange}
+    className="w-full border rounded-lg p-3"
+  >
+    <option value="STRIPE">Credit / Debit Card</option>
+    <option value="CRYPTO">USDT (TRC20)</option>
+  </select>
 </div>
             <button
               type="submit"

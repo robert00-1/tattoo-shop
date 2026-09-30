@@ -164,10 +164,20 @@ model Payment {
 
   paymentType PaymentType
 
+
+
   provider PaymentProvider
 
   transactionId String?
   reference     String?
+
+  walletAddress String?
+
+  cryptoCurrency String?
+  cryptoNetwork String?
+
+  proofImage String?
+  txHash String?
 
   status PaymentStatus @default(PENDING)
 
@@ -188,4 +198,17 @@ enum PaymentStatus {
   PENDING
   PAID
   FAILED
+}
+model Wallet {
+  id String @id @default(uuid())
+
+  walletAddress String
+
+  currency String
+  
+  network String
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
 }

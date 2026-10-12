@@ -1,4 +1,5 @@
 import express from "express";
+
 import cors from "cors";
 import dotenv from "dotenv";
 
@@ -12,11 +13,15 @@ import paymentRoutes from "./modules/payments/payment.routes.js";
 import { stripeWebhook } from "./modules/payments/payment.controller.js";
 import calendarRoutes from "./modules/calendar/calendar.routes.js";
 import path from "path";
+import { fileURLToPath } from "url";
 import reviewRoutes from "./modules/reviews/review.routes.js";
 import walletRoutes from "./modules/wallets/wallet.routes.js";
 dotenv.config();
 
 const app = express(); // ✅ FIX 1: use express(), not Router
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = path.resolve(__dirname, "../uploads");
 
 app.use(cors());
 
@@ -32,7 +37,7 @@ app.post(
 // ⚠️ Stripe raw body route must come BEFORE this
 app.use(express.json());
 
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(uploadsDir));
 
 app.get("/", (req, res) => {
   res.json({
@@ -49,9 +54,6 @@ app.use("/api/media", mediaRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/wallets", walletRoutes);
-app.use(
-  "/uploads",
-  express.static("uploads")
-);
+
 app.use("/api/reviews", reviewRoutes);
 export default app;

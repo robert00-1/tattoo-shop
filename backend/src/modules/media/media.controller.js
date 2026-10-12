@@ -10,7 +10,11 @@ export const uploadMedia = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
-    const fileUrl = `http://localhost:5000/uploads/${req.file.filename}`;
+    const baseUrl = (
+  process.env.BACKEND_URL || "http://localhost:5000"
+).replace(/\/$/, "");
+
+const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
     const fileType = req.file.mimetype.startsWith("video")
       ? "VIDEO"
